@@ -1,4 +1,4 @@
-import React, {useEffect, useLayoutEffect, useRef, useState} from "react";
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from "react";
 import { ActivityIndicator, Keyboard, Text, TextInput, View,  } from 'react-native';
 import { 
          ColorContainer,
@@ -21,7 +21,7 @@ import {
 } from './styles';
 import { Dashboard } from './src/component/Dashboard';
 import { initializeApp } from 'firebase/app'; 
-import { getDatabase, ref, onValue, set } from 'firebase/database';
+import { getDatabase, ref, onValue, set, get, child, push } from 'firebase/database';
 import { FormHandles } from "@unform/core";
 import { Form } from "@unform/mobile";
 import Input from "./src/component/Input";
@@ -37,10 +37,9 @@ interface objetoprops{
   T: number,
   V: number,
   L: string,
-  MAXC: number
+  MAXC: number,
+  STATUS: string
 }
-
-
 
 export default function App(
   {
@@ -50,7 +49,6 @@ export default function App(
 {
   const formRef = useRef<FormHandles>(null);
   const inputRef =useRef<TextInput>(null);
-  // const emailInputRef = useRef<TextInput>(null);
   const [state, setState] = useState<objetoprops>()
   const firebaseConfig = {
     apiKey: "AIzaSyCmlAYkMlYn1yxiZgO8eaiwA-FG1KlYLPs",
@@ -71,6 +69,7 @@ export default function App(
   const reference2 = ref(db, 'dados/MAXC');
 
 
+
   useLayoutEffect(() => {
     onValue(reference, (snapshot) => { 
       setState({
@@ -80,34 +79,20 @@ export default function App(
         V:snapshot.val().V,
         L:snapshot.val().L,
         MAXC:snapshot.val().MAXC,
+        STATUS:snapshot.val().STATUS,
       })
-  })
+    })
+    console.log("renderizou", state)
   },[]);
   
-  // function getValues() {
-  //   // console.log(reference)
-  //   let render = 0
-  //   onValue(reference, (snapshot) => {
-  //     if (state.R != snapshot.val().R){
-  //       setState({...state, R:snapshot.val().R});}
-  //     if (state.S != snapshot.val().S){
-  //       setState({ ...state, S:snapshot.val().S });}
-  //     if (state.T != snapshot.val().T){
-  //       setState({ ...state, T:snapshot.val().T });}
-  //     if (state.V != snapshot.val().V){
-  //         setState({ ...state, V:snapshot.val().V });}
-  //     if (state.MAXC != snapshot.val().MAXC){
-  //         setState({ ...state, MAXC:snapshot.val().MAXC });}
-  //     if (state.L != snapshot.val().L){
-  //       setState({ ...state, L:snapshot.val().L });
-  //       setStatusValue(state.L)}
-  //   });
-  // }
-
-  // getValues()
-
   function handleToggle(value:any){
     console.log("Chamou a função com",value)
+    if (state.STATUS === "2"){
+      console.log("status",state.STATUS )
+      setState({...state, L: "0"})
+      set(reference, {...state, L: "0" });
+      return
+    }
     if (value === "1" || value === "2"){
       console.log("entrou no IF 1 ou 2 com", value)
       setState({...state, L: "0"})
@@ -118,14 +103,6 @@ export default function App(
       set(reference, {...state, L: "1" });
     }
   }
-  // function setCorrente(corrente: AppProps){
-  //   console.log(corrente)
-  //   if (corrente != state.MAXC){
-  //     // setState(...state, MAXC: corrente)
-  //     console.log(state)
-  //    set(reference, {...state, MAXC: corrente });
-  //   }
-  // }
 
   const setCorrente = async(teste: any) => {
     console.log("set",teste)
@@ -144,17 +121,19 @@ export default function App(
 
   return (
     <>
-    {/* <Text>teste</Text> */}
       <ColorContainer style={
-            state?.L == '0'?
-            {backgroundColor:"#73FF73"}:state?.L == '1'?{backgroundColor:"#FF7373"}: {backgroundColor:"#FFFF73"}}>
+            state?.STATUS == '0' && state?.L == state?.STATUS? {backgroundColor:"#73FF73"}
+            :state?.STATUS == '1'  && state?.L == state?.STATUS ?{backgroundColor:"#FF7373"}
+            :state.L =="2"  || (state?.L =="1" && state?.STATUS == "2") ?{backgroundColor:"#FFFF73"}
+            :{backgroundColor:"#73bbff"}
+          }>
         <MaxCurrentContainer>
           <MaxCurrent>
             CORRENTE MÁXIMA
           </MaxCurrent>
         </MaxCurrentContainer>
         <MaxCurrentValueContainer>
-          {state?.L?
+          {state?.L ?
           (<MaxCurrentValue>
             {`${state?.MAXC} A`}
           </MaxCurrentValue>) :
@@ -162,16 +141,22 @@ export default function App(
           }
         </MaxCurrentValueContainer>
         <SystemStatusContainer>
-          <SystemStatus>
-          {state?.L == '1'?
+          
+          {state?.L == '1' && state?.L == state?.STATUS?
             <SystemStatus>SISTEMA LIGADO</SystemStatus>
-            :state?.L == '0'?
-            <SystemStatus>SISTEMA DESLIGADO</SystemStatus> :
-            <SystemStatus>SISTEMA DESARMADO</SystemStatus>}
-          </SystemStatus>
+            :state?.L == '0'  && state?.L == state?.STATUS?
+            <SystemStatus>SISTEMA DESLIGADO</SystemStatus> 
+            :state.L =="2"  || (state?.L =="1" && state?.STATUS == "2")?
+            <SystemStatus>SISTEMA DESARMADO</SystemStatus>
+            :
+            <View>
+            <ActivityIndicator size="large"/>
+            <SystemStatus>SISTEMA LIGANDO / DESLIGANDO</SystemStatus>
+            </View>
+          }
+          
         </SystemStatusContainer>
-      </ColorContainer>
-      
+      </ColorContainer>  
       <DataContainer>
         <DashboardContainer>
           <DashBoardTop>
@@ -184,11 +169,8 @@ export default function App(
           </DashBoardDown>
         </DashboardContainer>
         <InputContainer>
-          {/* <InputLabel>
-           Valor de corrente máxima
-          </InputLabel> */}
           <Form ref={formRef} onSubmit={setCorrente}>
-            <Input ref={inputRef} name="Corrente" placeholder={"Corrente máxima"} labelInput="Valor de corrente máxima"/>
+            <Input ref={inputRef} name="Corrente" placeholder={"Corrente máxima"} labelInput="Valor de corrente máxima" keyboardType="numeric"/>
           </Form>
         </InputContainer>
         <ButtonContainer>
@@ -197,18 +179,15 @@ export default function App(
           }}>
             <ButtonTitle>SALVAR</ButtonTitle>
           </ButtonSave>
-          {/* <View >
-
-          </View>{console.log(statusValue)} */}
           <ButtonPower style={
-            state?.L == '1'?
-            {backgroundColor:"#FF7373"}:state?.L == '0'?{backgroundColor:"#73FF73"}:{backgroundColor:"#FFFF73"}}
-            onPress={()=>{handleToggle(state?.L)}} >
-            {state?.L == '1'?
-            <ButtonTitle>DESLIGAR</ButtonTitle>
-            :state?.L == '0'?
-            <ButtonTitle>LIGAR</ButtonTitle> :
-            <ButtonTitle>DESARMADO - RESET</ButtonTitle>}
+            state?.STATUS == '1'? {backgroundColor:"#FF7373"}
+            :state?.STATUS == '0'?{backgroundColor:"#73FF73"}
+            :{backgroundColor:"#FFFF73"}}
+          onPress={()=>{handleToggle(state?.L)}} disabled={state?.L != state?.STATUS  && state?.STATUS != "2" ? true:false}>
+            {state?.L != state?.STATUS && state?.STATUS != "2" ? <ActivityIndicator size="large"/>
+            :state?.STATUS == '1'? <ButtonTitle>DESLIGAR</ButtonTitle>
+            :state?.STATUS == '0'? <ButtonTitle>LIGAR</ButtonTitle> 
+            :<ButtonTitle>DESARMADO - RESET</ButtonTitle>}
           </ButtonPower>
         </ButtonContainer>
       </DataContainer>
