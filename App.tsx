@@ -32,13 +32,13 @@ interface AppProps{
 }
 
 interface objetoprops{
-  R: number,
-  S: number,
-  T: number,
-  V: number,
-  L: string,
-  MAXC: number,
-  STATUS: string
+  CorrenteR: number,
+  CorrenteS: number,
+  CorrenteT: number,
+  Tensao: number,
+  LigaDesliga: string,
+  CorrenteDesarme: number,
+  Status: string
 }
 
 export default function App(
@@ -66,20 +66,20 @@ export default function App(
   const [statusValue, setStatusValue] = useState("0")
   const [correntemaxima, setCorrenteMaxima] = useState()
   const reference = ref(db, 'dados/');
-  const reference2 = ref(db, 'dados/MAXC');
+  const reference2 = ref(db, 'dados/CorrenteDesarme');
 
 
 
   useLayoutEffect(() => {
     onValue(reference, (snapshot) => { 
       setState({
-        R:snapshot.val().R, 
-        S:snapshot.val().S,
-        T:snapshot.val().T,
-        V:snapshot.val().V,
-        L:snapshot.val().L,
-        MAXC:snapshot.val().MAXC,
-        STATUS:snapshot.val().STATUS,
+        CorrenteR:snapshot.val().CorrenteR, 
+        CorrenteS:snapshot.val().CorrenteS,
+        CorrenteT:snapshot.val().CorrenteT,
+        Tensao:snapshot.val().Tensao,
+        LigaDesliga:snapshot.val().LigaDesliga,
+        CorrenteDesarme:snapshot.val().CorrenteDesarme,
+        Status:snapshot.val().Status,
       })
     })
     console.log("renderizou", state)
@@ -87,29 +87,29 @@ export default function App(
   
   function handleToggle(value:any){
     console.log("Chamou a função com",value)
-    if (state.STATUS === "2"){
-      console.log("status",state.STATUS )
-      setState({...state, L: "0"})
+    if (state.Status === "2"){
+      console.log("status",state.Status )
+      setState({...state, LigaDesliga: "0"})
       set(reference, {...state, L: "0" });
       return
     }
     if (value === "1" || value === "2"){
       console.log("entrou no IF 1 ou 2 com", value)
-      setState({...state, L: "0"})
-      set(reference, {...state, L: "0" });
+      setState({...state, LigaDesliga: "0"})
+      set(reference, {...state, LigaDesliga: "0" });
       console.log("Setou e deu foi para ",state)
     }else{
-      setState({...state, L: "1"})
-      set(reference, {...state, L: "1" });
+      setState({...state, LigaDesliga: "1"})
+      set(reference, {...state, LigaDesliga: "1" });
     }
   }
 
   const setCorrente = async(teste: any) => {
     console.log("set",teste)
-    if (teste != state.MAXC && teste !=0){
-      // setState(...state, MAXC: corrente)
+    if (teste != state.CorrenteDesarme && teste !=0){
+      // setState(...state, CorrenteDesarme: corrente)
       console.log(state)
-     set(reference, {...state, MAXC: teste.Corrente });
+     set(reference, {...state, CorrenteDesarme: teste.Corrente });
     }
     formRef.current?.clearField("Corrente");
     Keyboard.dismiss();
@@ -122,9 +122,9 @@ export default function App(
   return (
     <>
       <ColorContainer style={
-            state?.STATUS == '0' && state?.L == state?.STATUS? {backgroundColor:"#73FF73"}
-            :state?.STATUS == '1'  && state?.L == state?.STATUS ?{backgroundColor:"#FF7373"}
-            :state.L =="2"  || (state?.L =="1" && state?.STATUS == "2") ?{backgroundColor:"#FFFF73"}
+            state?.Status == '0' && state?.LigaDesliga == state?.Status? {backgroundColor:"#73FF73"}
+            :state?.Status == '1'  && state?.LigaDesliga == state?.Status ?{backgroundColor:"#FF7373"}
+            :state?.LigaDesliga =="2"  || (state?.LigaDesliga =="1" && state?.Status == "2") ?{backgroundColor:"#FFFF73"}
             :{backgroundColor:"#73bbff"}
           }>
         <MaxCurrentContainer>
@@ -133,20 +133,20 @@ export default function App(
           </MaxCurrent>
         </MaxCurrentContainer>
         <MaxCurrentValueContainer>
-          {state?.L ?
+          {state?.LigaDesliga ?
           (<MaxCurrentValue>
-            {`${state?.MAXC} A`}
+            {`${state?.CorrenteDesarme} A`}
           </MaxCurrentValue>) :
           (<ActivityIndicator size="large"/>)
           }
         </MaxCurrentValueContainer>
         <SystemStatusContainer>
           
-          {state?.L == '1' && state?.L == state?.STATUS?
+          {state?.LigaDesliga == '1' && state?.LigaDesliga == state?.Status?
             <SystemStatus>SISTEMA LIGADO</SystemStatus>
-            :state?.L == '0'  && state?.L == state?.STATUS?
+            :state?.LigaDesliga == '0'  && state?.LigaDesliga == state?.Status?
             <SystemStatus>SISTEMA DESLIGADO</SystemStatus> 
-            :state.L =="2"  || (state?.L =="1" && state?.STATUS == "2")?
+            :state?.LigaDesliga =="2"  || (state?.LigaDesliga =="1" && state?.Status == "2")?
             <SystemStatus>SISTEMA DESARMADO</SystemStatus>
             :
             <View>
@@ -160,12 +160,12 @@ export default function App(
       <DataContainer>
         <DashboardContainer>
           <DashBoardTop>
-            <Dashboard title='CORRENTE R' description={String(state?.R)}/>
-            <Dashboard title='CORRENTE S' description={String(state?.S)}/>
+            <Dashboard title='CORRENTE R' description={String(state?.CorrenteR)}/>
+            <Dashboard title='CORRENTE S' description={String(state?.CorrenteS)}/>
           </DashBoardTop>
           <DashBoardDown>
-            <Dashboard title='CORRENTE T' description={String(state?.T)}/>
-            <Dashboard title='TENSÃO' description={String(state?.V)}/>
+            <Dashboard title='CORRENTE T' description={String(state?.CorrenteT)}/>
+            <Dashboard title='TENSÃO' description={String(state?.Tensao)}/>
           </DashBoardDown>
         </DashboardContainer>
         <InputContainer>
@@ -180,13 +180,13 @@ export default function App(
             <ButtonTitle>SALVAR</ButtonTitle>
           </ButtonSave>
           <ButtonPower style={
-            state?.STATUS == '1'? {backgroundColor:"#FF7373"}
-            :state?.STATUS == '0'?{backgroundColor:"#73FF73"}
+            state?.Status == '1'? {backgroundColor:"#FF7373"}
+            :state?.Status == '0'?{backgroundColor:"#73FF73"}
             :{backgroundColor:"#FFFF73"}}
-          onPress={()=>{handleToggle(state?.L)}} disabled={state?.L != state?.STATUS  && state?.STATUS != "2" ? true:false}>
-            {state?.L != state?.STATUS && state?.STATUS != "2" ? <ActivityIndicator size="large"/>
-            :state?.STATUS == '1'? <ButtonTitle>DESLIGAR</ButtonTitle>
-            :state?.STATUS == '0'? <ButtonTitle>LIGAR</ButtonTitle> 
+          onPress={()=>{handleToggle(state?.LigaDesliga)}} disabled={state?.LigaDesliga != state?.Status  && state?.Status != "2" ? true:false}>
+            {state?.LigaDesliga != state?.Status && state?.Status != "2" ? <ActivityIndicator size="large"/>
+            :state?.Status == '1'? <ButtonTitle>DESLIGAR</ButtonTitle>
+            :state?.Status == '0'? <ButtonTitle>LIGAR</ButtonTitle> 
             :<ButtonTitle>DESARMADO - RESET</ButtonTitle>}
           </ButtonPower>
         </ButtonContainer>
