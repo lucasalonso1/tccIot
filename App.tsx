@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from "react";
-import { ActivityIndicator, Keyboard, Text, TextInput, View,  } from 'react-native';
+import { ActivityIndicator, Keyboard, Text, TextInput, TouchableWithoutFeedback, View,  } from 'react-native';
 import { 
          ColorContainer,
          MaxCurrentContainer,
@@ -36,9 +36,9 @@ interface objetoprops{
   CorrenteS: number,
   CorrenteT: number,
   Tensao: number,
-  LigaDesliga: string,
+  LigaDesliga: number,
   CorrenteDesarme: number,
-  Status: string
+  Status: number
 }
 
 export default function App(
@@ -51,21 +51,20 @@ export default function App(
   const inputRef =useRef<TextInput>(null);
   const [state, setState] = useState<objetoprops>()
   const firebaseConfig = {
-    apiKey: "AIzaSyCmlAYkMlYn1yxiZgO8eaiwA-FG1KlYLPs",
-    authDomain: "trabalhopp-7e58e.firebaseapp.com",
-    databaseURL: "https://trabalhopp-7e58e-default-rtdb.firebaseio.com",
-    projectId: "trabalhopp-7e58e",
-    storageBucket: "trabalhopp-7e58e.appspot.com",
-    messagingSenderId: "252088541616",
-    appId: "1:252088541616:web:3ee1ed3616925aef1bf675",
-    measurementId: "G-S00FPW9BS1"
+    apiKey: "AIzaSyCm97z1-MwQmtz-qjUVOHSjsHe5fmzwSW4",
+    authDomain: "projetotcc-52bd3.firebaseapp.com",
+    databaseURL: "https://projetotcc-52bd3-default-rtdb.firebaseio.com/",
+    projectId: "projetotcc-52bd3",
+    storageBucket: "projetotcc-52bd3.appspot.com",
+    messagingSenderId: "601496828216",
+    appId: "1:601496828216:web:3fca36415d5cad1937e9cd"
   };
   initializeApp(firebaseConfig);
   const db = getDatabase();
   // let R, S, T, V, L, MAXC:any
   const [statusValue, setStatusValue] = useState("0")
   const [correntemaxima, setCorrenteMaxima] = useState()
-  const reference = ref(db, 'dados/');
+  const reference = ref(db, 'Placa/');
   const reference2 = ref(db, 'dados/CorrenteDesarme');
 
 
@@ -87,20 +86,22 @@ export default function App(
   
   function handleToggle(value:any){
     console.log("Chamou a função com",value)
-    if (state.Status === "2"){
-      console.log("status",state.Status )
-      setState({...state, LigaDesliga: "0"})
-      set(reference, {...state, L: "0" });
-      return
-    }
-    if (value === "1" || value === "2"){
+    // if (state.Status === 2){
+    //   console.log("status",state.Status )
+    //   setState({...state, LigaDesliga: 0})
+    //   set(reference, {...state, L: "0" });
+    //   return
+    // }
+    if (value == 1 || value == 2){
       console.log("entrou no IF 1 ou 2 com", value)
-      setState({...state, LigaDesliga: "0"})
-      set(reference, {...state, LigaDesliga: "0" });
+      setState({...state, LigaDesliga: 0})
+      set(reference, {...state, LigaDesliga: 0 });
       console.log("Setou e deu foi para ",state)
+      return
     }else{
-      setState({...state, LigaDesliga: "1"})
-      set(reference, {...state, LigaDesliga: "1" });
+      setState({...state, LigaDesliga: 1})
+      set(reference, {...state, LigaDesliga: 1 });
+      return
     }
   }
 
@@ -109,7 +110,7 @@ export default function App(
     if (teste != state.CorrenteDesarme && teste !=0){
       // setState(...state, CorrenteDesarme: corrente)
       console.log(state)
-     set(reference, {...state, CorrenteDesarme: teste.Corrente });
+     set(reference, {...state, CorrenteDesarme: Number(teste.Corrente) });
     }
     formRef.current?.clearField("Corrente");
     Keyboard.dismiss();
@@ -121,10 +122,11 @@ export default function App(
 
   return (
     <>
+        <TouchableWithoutFeedback onPress={()=>{Keyboard.dismiss();}}>
       <ColorContainer style={
-            state?.Status == '0' && state?.LigaDesliga == state?.Status? {backgroundColor:"#73FF73"}
-            :state?.Status == '1'  && state?.LigaDesliga == state?.Status ?{backgroundColor:"#FF7373"}
-            :state?.LigaDesliga =="2"  || (state?.LigaDesliga =="1" && state?.Status == "2") ?{backgroundColor:"#FFFF73"}
+            state?.Status == 0 && state?.LigaDesliga == state?.Status? {backgroundColor:"#73FF73"}
+            :state?.Status == 1  && state?.LigaDesliga == state?.Status ?{backgroundColor:"#FF7373"}
+            :state?.LigaDesliga ==2  || (state?.LigaDesliga ==1 && state?.Status == 2) ?{backgroundColor:"#FFFF73"}
             :{backgroundColor:"#73bbff"}
           }>
         <MaxCurrentContainer>
@@ -133,7 +135,8 @@ export default function App(
           </MaxCurrent>
         </MaxCurrentContainer>
         <MaxCurrentValueContainer>
-          {state?.LigaDesliga ?
+          {/* {console.log(state.LigaDesliga != null? "true": "false")} */}
+          {state?.LigaDesliga !=null ?
           (<MaxCurrentValue>
             {`${state?.CorrenteDesarme} A`}
           </MaxCurrentValue>) :
@@ -142,11 +145,11 @@ export default function App(
         </MaxCurrentValueContainer>
         <SystemStatusContainer>
           
-          {state?.LigaDesliga == '1' && state?.LigaDesliga == state?.Status?
+          {state?.LigaDesliga == 1 && state?.LigaDesliga == state?.Status?
             <SystemStatus>SISTEMA LIGADO</SystemStatus>
-            :state?.LigaDesliga == '0'  && state?.LigaDesliga == state?.Status?
+            :state?.LigaDesliga == 0  && state?.LigaDesliga == state?.Status?
             <SystemStatus>SISTEMA DESLIGADO</SystemStatus> 
-            :state?.LigaDesliga =="2"  || (state?.LigaDesliga =="1" && state?.Status == "2")?
+            :state?.LigaDesliga ==2  || (state?.LigaDesliga ==1 && state?.Status == 2)?
             <SystemStatus>SISTEMA DESARMADO</SystemStatus>
             :
             <View>
@@ -157,6 +160,7 @@ export default function App(
           
         </SystemStatusContainer>
       </ColorContainer>  
+        </TouchableWithoutFeedback>
       <DataContainer>
         <DashboardContainer>
           <DashBoardTop>
@@ -180,13 +184,13 @@ export default function App(
             <ButtonTitle>SALVAR</ButtonTitle>
           </ButtonSave>
           <ButtonPower style={
-            state?.Status == '1'? {backgroundColor:"#FF7373"}
-            :state?.Status == '0'?{backgroundColor:"#73FF73"}
+            state?.Status == 1? {backgroundColor:"#FF7373"}
+            :state?.Status == 0?{backgroundColor:"#73FF73"}
             :{backgroundColor:"#FFFF73"}}
-          onPress={()=>{handleToggle(state?.LigaDesliga)}} disabled={state?.LigaDesliga != state?.Status  && state?.Status != "2" ? true:false}>
-            {state?.LigaDesliga != state?.Status && state?.Status != "2" ? <ActivityIndicator size="large"/>
-            :state?.Status == '1'? <ButtonTitle>DESLIGAR</ButtonTitle>
-            :state?.Status == '0'? <ButtonTitle>LIGAR</ButtonTitle> 
+          onPress={()=>{handleToggle(state?.LigaDesliga)}} disabled={state?.LigaDesliga != state?.Status  && state?.Status != 2 ? true:false}>
+            {state?.LigaDesliga != state?.Status && state?.Status != 2 ? <ActivityIndicator size="large"/>
+            :state?.Status == 1? <ButtonTitle>DESLIGAR</ButtonTitle>
+            :state?.Status == 0? <ButtonTitle>LIGAR</ButtonTitle> 
             :<ButtonTitle>DESARMADO - RESET</ButtonTitle>}
           </ButtonPower>
         </ButtonContainer>
