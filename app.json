@@ -6,6 +6,14 @@
     "orientation": "portrait",
     "assetBundlePatterns": [
       "**/*"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d4d31ebe-3e54-4dee-9fb6-dd6dbade472a"
+      }
+    },
+    "android": {
+      "package": "com.lucasalonso.tccIot"
+    }
   }
 }
