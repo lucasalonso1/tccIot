@@ -1,0 +1,11 @@
+{
+    "Placa": {
+      "CorrenteDesarme": "10",
+      "CorrenteR": 2,
+      "CorrenteS": 2,
+      "CorrenteT": 2,
+      "LigaDesliga": 1,
+      "Status": "2",
+      "Tensao": 12.4
+    }
+  }
